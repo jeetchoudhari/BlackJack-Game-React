@@ -3,7 +3,7 @@ import './App.css';
 import Scoreboard from './Scoreboard';
 
 const cards_dict = {
-  'A': 1, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10
+  'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10
 };
 
 const Game = () => {
@@ -16,8 +16,10 @@ const Game = () => {
   const [scoreboard, setScoreboard] = useState([]);
   const [playerWins, setPlayerWins] = useState(0);
   const [computerWins, setComputerWins] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
 
   const startGame = () => {
+    setGameStarted(true);
     let pSum = 0, cSum = 0;
     let pCards = [], cCards = [];
 
@@ -105,42 +107,71 @@ const Game = () => {
     setComputerCards([]);
     setGameResult('');
     setShowComputerCards(false); // Hide computer cards on refresh
+    setGameStarted(false);
   };
 
   const updateScoreboard = (result) => {
     setScoreboard([...scoreboard, result]);
   };
 
+  const cardImage = (card) => {
+    return `${process.env.PUBLIC_URL}/cards/${card}.png`;
+  };
+
   return (
-    <div className="game-container">
-      <p className="start-game">Press "Start Game" to start game and distribute the cards</p>
-      <button className="start-btn" onClick={startGame}>Start Game</button>
-      <h3>Initial cards are:</h3>
-      <div className="player-cards">
-        <h3>Player Cards: {playerCards.join(', ')}</h3>
-        <p>Player Sum: {playerSum}</p>
+    <div className="app-container">
+      <div className="game-container">
+        <p className="start-game">Press "Start Game" to start game and distribute the cards</p>
+        <button className="start-btn" onClick={startGame}>Start Game</button>
+        <h3>Initial cards are:</h3>
+        <div className="player-cards">
+          <h3>Player Cards:</h3>
+          {playerCards.map((card, index) => (
+            <img key={index} src={cardImage(card)} alt={card} className="card-image" />
+          ))}
+          <p>Player Sum: {playerSum}</p>
+        </div>
+  
+        <div className="computer-cards">
+          <h3>Computer Cards:</h3>
+          {gameStarted && computerCards.slice(0, showComputerCards ? computerCards.length : 1).map((card, index) => (
+            <img key={index} src={cardImage(card)} alt={card} className="card-image" />
+          ))}
+          {gameStarted && !showComputerCards && <img src={cardImage('back')} alt="hidden card" className="card-image" />}
+          <p>Computer Sum: {showComputerCards ? computerSum : gameStarted ? cards_dict[computerCards[0]] : '???'}</p>
+        </div>
+  
+        <button onClick={drawCard}>Draw Card</button>
+        <button onClick={stopGame}>Stop</button>
+        <div className="computer-cards">
+          <h3>Cards after user stops</h3>
+          {showComputerCards && computerCards.map((card, index) => (
+            <img key={index} src={cardImage(card)} alt={card} className="card-image" />
+          ))}
+          <p>Computer Sum: {showComputerCards ? computerSum : '???'}</p>
+        </div>
+        <div className="game-result">
+          {gameResult && <h2>{gameResult}</h2>}
+        </div>
+        <button onClick={refreshGame}>Refresh Game</button>
+  
+        <Scoreboard scoreboard={scoreboard} playerWins={playerWins} computerWins={computerWins} />
       </div>
-
-      <div className="computer-cards">
-        <h3>Computer Cards: {computerCards.join(', ')}</h3>
-        <p>Computer Sum: {computerSum}</p>
+      <div className="rules-container">
+        <div className="rules-box">
+          <h2>Game Rules</h2>
+          <ol>
+            <li>User has to place their bet.</li>
+            <li>Once bet is placed, the dealer will deal two cards to the player, face up.</li>
+            <li>After receiving your two cards, you can choose to "Draw" and receive additional cards or “stop” and keep your current hand.</li>
+            <li>Computer will reveal their face-down card and Draw or stop according to predetermined rules.</li>
+            <li>If neither the player nor the dealer busts(value greater than 21), the person with the highest hand value wins.</li>
+          </ol>
+        </div>
       </div>
-
-      <button onClick={drawCard}>Draw Card</button>
-      <button onClick={stopGame}>Stop</button>
-      <div className="computer-cards">
-        <h3>Cards after user stops</h3>
-        <p>Computer Cards: {showComputerCards ? computerCards.join(', ') : '???'}</p>
-        <p>Computer Sum: {showComputerCards ? computerSum : '???'}</p>
-      </div>
-      <div className="game-result">
-        {gameResult && <h2>{gameResult}</h2>}
-      </div>
-      <button onClick={refreshGame}>Refresh Game</button>
-
-      <Scoreboard scoreboard={scoreboard} playerWins={playerWins} computerWins={computerWins} />
     </div>
   );
+  
 };
 
 function App() {
